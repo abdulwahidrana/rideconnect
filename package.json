@@ -1,0 +1,40 @@
+{
+  "name": "rideconnect",
+  "version": "1.0.0",
+  "private": true,
+  "description": "RideConnect - Real-Time Ride Sharing Dispatch System",
+  "scripts": {
+    "dev": "node server.js",
+    "build": "next build",
+    "start": "NODE_ENV=production node server.js",
+    "lint": "next lint",
+    "seed": "node scripts/seed.js"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^3.9.1",
+    "bcryptjs": "^2.4.3",
+    "framer-motion": "^11.15.0",
+    "lucide-react": "^0.468.0",
+    "mongoose": "^8.9.0",
+    "next": "^15.1.0",
+    "next-auth": "^4.24.11",
+    "next-themes": "^0.4.4",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-hook-form": "^7.54.0",
+    "recharts": "^2.15.0",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^22.10.2",
+    "@types/react": "^19.0.1",
+    "@types/react-dom": "^19.0.2",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.2"
+  }
+}
