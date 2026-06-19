@@ -4,7 +4,7 @@ const brevo = new BrevoClient({ apiKey: process.env.BREVO_API_KEY ?? "" });
 
 export async function sendPasswordResetEmail(to: string, resetUrl: string) {
   await brevo.transactionalEmails.sendTransacEmail({
-    sender: { name: "RideConnect", email: "noreply@rideconnect.app" },
+    sender: { name: "RideConnect", email: process.env.BREVO_SENDER_EMAIL ?? "" },
     to: [{ email: to }],
     subject: "Reset your RideConnect password",
     htmlContent: `
