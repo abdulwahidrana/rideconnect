@@ -1,21 +1,13 @@
-import nodemailer from "nodemailer";
+import { BrevoClient } from "@getbrevo/brevo";
 
-const transporter = nodemailer.createTransport({
-  host: "smtp-relay.brevo.com",
-  port: 587,
-  secure: false,
-  auth: {
-    user: process.env.BREVO_SMTP_USER,
-    pass: process.env.BREVO_SMTP_KEY,
-  },
-});
+const brevo = new BrevoClient({ apiKey: process.env.BREVO_API_KEY ?? "" });
 
 export async function sendPasswordResetEmail(to: string, resetUrl: string) {
-  await transporter.sendMail({
-    from: `"RideConnect" <${process.env.BREVO_SMTP_USER}>`,
-    to,
+  await brevo.transactionalEmails.sendTransacEmail({
+    sender: { name: "RideConnect", email: "noreply@rideconnect.app" },
+    to: [{ email: to }],
     subject: "Reset your RideConnect password",
-    html: `
+    htmlContent: `
       <div style="font-family:Arial,sans-serif;max-width:480px;margin:auto;padding:32px;border:1px solid #e5e7eb;border-radius:12px;">
         <h2 style="color:#1e293b;margin-bottom:8px;">Password Reset Request</h2>
         <p style="color:#475569;font-size:15px;">
