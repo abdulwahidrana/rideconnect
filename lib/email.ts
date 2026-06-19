@@ -1,20 +1,10 @@
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 
-function createTransporter() {
-  return nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
-}
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function sendPasswordResetEmail(to: string, resetUrl: string) {
-  const transporter = createTransporter();
-
-  await transporter.sendMail({
-    from: `"RideConnect" <${process.env.EMAIL_USER}>`,
+  await resend.emails.send({
+    from: "RideConnect <onboarding@resend.dev>",
     to,
     subject: "Reset your RideConnect password",
     html: `
