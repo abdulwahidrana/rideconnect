@@ -1,10 +1,18 @@
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const transporter = nodemailer.createTransport({
+  host: "smtp-relay.brevo.com",
+  port: 587,
+  secure: false,
+  auth: {
+    user: process.env.BREVO_SMTP_USER,
+    pass: process.env.BREVO_SMTP_KEY,
+  },
+});
 
 export async function sendPasswordResetEmail(to: string, resetUrl: string) {
-  await resend.emails.send({
-    from: "RideConnect <onboarding@resend.dev>",
+  await transporter.sendMail({
+    from: `"RideConnect" <${process.env.BREVO_SMTP_USER}>`,
     to,
     subject: "Reset your RideConnect password",
     html: `
