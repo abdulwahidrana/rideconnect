@@ -5,7 +5,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Navigation, PlusCircle, XCircle, Loader2, PhoneCall, Star } from "lucide-react";
 import RideCard from "@/components/dashboard/RideCard";
-import MapPlaceholder from "@/components/dashboard/MapPlaceholder";
+import LiveMap from "@/components/dashboard/LiveMap";
 import StatusTimeline from "@/components/dashboard/StatusTimeline";
 import { CardSkeleton } from "@/components/ui/Skeletons";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -18,6 +18,7 @@ export default function PassengerActiveRidePage() {
   const { toast } = useToast();
   const [ride, setRide] = useState<RideDTO | null | undefined>(undefined);
   const [cancelling, setCancelling] = useState(false);
+  const [driverCoords, setDriverCoords] = useState<[number, number] | null>(null);
 
   const load = async () => {
     const res = await fetch("/api/rides?scope=active");
@@ -49,9 +50,18 @@ export default function PassengerActiveRidePage() {
         return updated;
       });
     };
+    const onLocation = ({ rideId, lat, lng }: { rideId: string; lat: number; lng: number }) => {
+      setRide((prev) => {
+        if (prev && prev._id === rideId) setDriverCoords([lat, lng]);
+        return prev ?? null;
+      });
+    };
+
     socket.on("ride:update", onUpdate);
+    socket.on("ride:location", onLocation);
     return () => {
       socket.off("ride:update", onUpdate);
+      socket.off("ride:location", onLocation);
     };
   }, [socket, toast]);
 
@@ -99,7 +109,7 @@ export default function PassengerActiveRidePage() {
   return (
     <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
       <div className="space-y-5">
-        <MapPlaceholder pickup={ride.pickupLocation} destination={ride.destination} />
+        <LiveMap pickup={ride.pickupLocation} destination={ride.destination} driverCoords={driverCoords} />
         <RideCard
           ride={ride}
           showDriver

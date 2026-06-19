@@ -4,6 +4,7 @@ import { connectDB } from "@/lib/db";
 import User from "@/models/User";
 import { forgotPasswordSchema } from "@/lib/validations";
 import { badRequest, serverError } from "@/lib/api-helpers";
+import { sendPasswordResetEmail } from "@/lib/email";
 
 export async function POST(req: NextRequest) {
   try {
@@ -26,13 +27,23 @@ export async function POST(req: NextRequest) {
     user.resetTokenExpiry = new Date(Date.now() + 1000 * 60 * 30); // 30 minutes
     await user.save();
 
-    // In production, email this link. For development we return it so the
-    // flow can be completed without an SMTP server.
     const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || ""}/reset-password?token=${token}`;
+
+    try {
+      await sendPasswordResetEmail(user.email, resetUrl);
+    } catch {
+      // In dev without email config, fall back to returning the link directly.
+      if (process.env.NODE_ENV !== "production") {
+        return NextResponse.json({
+          message: "If an account exists for this email, a reset link has been generated.",
+          devResetUrl: resetUrl,
+        });
+      }
+      return serverError("Failed to send reset email. Please try again later.");
+    }
 
     return NextResponse.json({
       message: "If an account exists for this email, a reset link has been generated.",
-      ...(process.env.NODE_ENV !== "production" ? { devResetUrl: resetUrl } : {}),
     });
   } catch (e) {
     return serverError(e);

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Navigation, ArrowRight, XCircle, Loader2, Inbox, PhoneCall, CheckCircle2 } from "lucide-react";
 import RideCard from "@/components/dashboard/RideCard";
-import MapPlaceholder from "@/components/dashboard/MapPlaceholder";
+import LiveMap from "@/components/dashboard/LiveMap";
 import StatusTimeline from "@/components/dashboard/StatusTimeline";
 import { CardSkeleton } from "@/components/ui/Skeletons";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -24,6 +24,7 @@ export default function DriverActiveRidePage() {
   const { toast } = useToast();
   const [ride, setRide] = useState<RideDTO | null | undefined>(undefined);
   const [busy, setBusy] = useState(false);
+  const [selfCoords, setSelfCoords] = useState<[number, number] | null>(null);
 
   useEffect(() => {
     fetch("/api/rides?scope=active")
@@ -48,6 +49,26 @@ export default function DriverActiveRidePage() {
       socket.off("ride:update", onUpdate);
     };
   }, [socket, toast]);
+
+  // Broadcast driver GPS to passenger in real time
+  useEffect(() => {
+    if (!ride || !socket || !navigator.geolocation) return;
+    const passenger = typeof ride.passenger === "object" ? (ride.passenger as UserDTO) : null;
+    const watchId = navigator.geolocation.watchPosition(
+      ({ coords }) => {
+        setSelfCoords([coords.latitude, coords.longitude]);
+        socket.emit("ride:location", {
+          rideId: ride._id,
+          passengerId: passenger?._id,
+          lat: coords.latitude,
+          lng: coords.longitude,
+        });
+      },
+      () => {},
+      { enableHighAccuracy: true, maximumAge: 5000 }
+    );
+    return () => navigator.geolocation.clearWatch(watchId);
+  }, [ride?._id, socket]);
 
   const act = async (action: "advance" | "cancel") => {
     if (!ride) return;
@@ -103,7 +124,7 @@ export default function DriverActiveRidePage() {
   return (
     <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
       <div className="space-y-5">
-        <MapPlaceholder pickup={ride.pickupLocation} destination={ride.destination} />
+        <LiveMap pickup={ride.pickupLocation} destination={ride.destination} driverCoords={selfCoords} />
         <RideCard
           ride={ride}
           showPassenger
